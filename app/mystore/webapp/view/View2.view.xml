@@ -1,0 +1,32 @@
+<mvc:View controllerName="mystore.controller.View2"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns:form="sap.ui.layout.form"
+    xmlns="sap.m">
+    <Page id="detailPage" title="{i18n>titleDetail}" showNavButton="true" navButtonPress=".onNavBackPress">
+        <content>
+            <form:SimpleForm id="detailForm" editable="true" layout="ResponsiveGridLayout">
+                <form:content>
+                    <Label id="nameLabel" text="{i18n>labelName}"/>
+                    <Input id="nameInput" value="{name}"/>
+
+                    <Label id="descriptionLabel" text="{i18n>labelDescription}"/>
+                    <Input id="descriptionInput" value="{description}"/>
+
+                    <Label id="priceLabel" text="{i18n>labelPrice}"/>
+                    <Input id="priceInput" value="{price}" type="Number"/>
+
+                    <Label id="stockLabel" text="{i18n>labelStock}"/>
+                    <Input id="stockInput" value="{stock}" type="Number"/>
+                </form:content>
+            </form:SimpleForm>
+        </content>
+        <footer>
+            <Toolbar id="detailFooterToolbar">
+                <ToolbarSpacer id="detailFooterSpacer"/>
+                <Button id="saveButton" text="{i18n>btnSave}" type="Emphasized" press=".onSavePress"/>
+                <Button id="deleteButton" text="{i18n>btnDelete}" type="Negative" press=".onDeletePress"/>
+                <Button id="cancelButton" text="{i18n>btnCancel}" press=".onCancelPress"/>
+            </Toolbar>
+        </footer>
+    </Page>
+</mvc:View>

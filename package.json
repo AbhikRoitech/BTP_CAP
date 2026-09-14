@@ -1,0 +1,42 @@
+{
+  "name": "CAP_01",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "@cap-js/hana": "^3",
+    "@sap/cds": "^10"
+  },
+  "devDependencies": {
+    "@cap-js/sqlite": "^3",
+    "@sap/cds-dk": "^10",
+    "cds-plugin-ui5": "^0.17.0",
+    "rimraf": "^5.0.5",
+    "mbt": "^1.2.49"
+  },
+  "scripts": {
+    "start": "cds-serve",
+    "watch-productshop": "cds watch --open productshop/index.html?sap-ui-xx-viewCache=false --livereload false",
+    "undeploy": "cf undeploy CAP_01 --delete-services --delete-service-keys --delete-service-brokers",
+    "build": "rimraf resources mta_archives && mbt build --mtar archive",
+    "deploy": "cf deploy mta_archives/archive.mtar --retries 1",
+    "watch-mystore": "cds watch --open mystore/index.html?sap-ui-xx-viewCache=false --livereload false"
+  },
+  "private": true,
+  "cds": {
+    "requires": {
+      "db": {
+        "kind": "sqlite",
+        "credentials": {
+          "url": "db.sqlite"
+        },
+        "schema_evolution": "auto"
+      }
+    }
+  },
+  "workspaces": [
+    "app/*"
+  ],
+  "sapux": [
+    "app/productshop"
+  ]
+}

@@ -1,0 +1,39 @@
+<mvc:View controllerName="mystore.controller.View1"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m">
+    <Page id="page" title="{i18n>title}">
+        <headerContent>
+            <Button
+                id="addButton"
+                icon="sap-icon://add"
+                text="{i18n>btnAdd}"
+                press=".onAddPress"/>
+        </headerContent>
+        <Table id="productsTable" items="{/Products}" growing="true" growingThreshold="20">
+            <columns>
+                <Column id="nameColumn">
+                    <Text id="nameColumnText" text="{i18n>labelName}"/>
+                </Column>
+                <Column id="descriptionColumn">
+                    <Text id="descriptionColumnText" text="{i18n>labelDescription}"/>
+                </Column>
+                <Column id="priceColumn" hAlign="End">
+                    <Text id="priceColumnText" text="{i18n>labelPrice}"/>
+                </Column>
+                <Column id="stockColumn" hAlign="End">
+                    <Text id="stockColumnText" text="{i18n>labelStock}"/>
+                </Column>
+            </columns>
+            <items>
+                <ColumnListItem id="productListItem" type="Navigation" press=".onItemPress">
+                    <cells>
+                        <Text id="nameText" text="{name}"/>
+                        <Text id="descriptionText" text="{description}"/>
+                        <Text id="priceText" text="{price}"/>
+                        <Text id="stockText" text="{stock}"/>
+                    </cells>
+                </ColumnListItem>
+            </items>
+        </Table>
+    </Page>
+</mvc:View>
