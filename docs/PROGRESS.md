@@ -7,15 +7,133 @@ See `ClaudeCodeInstructions.md` for the full plan, and `docs/adr/` for decisions
 
 ## Current position
 
-**Phase 0 — Orientation and architecture**
-**Step 5 — Environments and CAP profiles: DONE, awaiting verification.**
+**Phase 1 — Project foundation, Git and CI**
+**Steps 7–10 DONE. Step 11 (the PR demonstration) is yours to run.**
 
-Next: Step 6 — required BTP services, plans, entitlements, prerequisites, cost.
-Last step of Phase 0.
+Not committed — awaiting your review.
+
+Still open from Phase 0: the cockpit checklist in
+[btp-services.md §5](btp-services.md#5-your-checklist--run-this-in-the-cockpit).
+Not blocking; first needed at Step 37.
+
+Next: Phase 2, Step 12 — reusable aspects, types and i18n.
 
 ---
 
 ## Step log
+
+### Phase 1, Steps 7–11 — Foundation, Git hygiene and CI (2026-10-15)
+
+Done in one pass at your request. **Not committed** — you review and commit.
+
+**Step 7 — CAP project initialized**
+
+- `cds init`, then `cds add nodejs,sqlite,test`. The `test` facet skipped itself
+  ("no model found"), so the harness was written by hand — see Step 9.
+- `package.json`: renamed to `procurement-platform`, `engines.node: ">=22"`
+  per ADR 001, six scripts, the three test users.
+- `.nvmrc` → `24`, the parity contract from ADR 001. CI reads this file rather
+  than hardcoding a version.
+- Verified: `cds env` resolves `emma`, `max`, `admin` with the right roles, and
+  the `[production]` profile switches auth to `xsuaa`.
+
+**Step 8 — Git hygiene**
+
+- `.gitattributes` created. `cds init`'s `.gitignore` was already good
+  (`.cdsrc-private.json`, `default-*.json`, `*.sqlite`, MTA artifacts); rewritten
+  tidily rather than appended to, with the secret entries commented as to *why*.
+- Branch strategy: `main` is the integration branch, work on `feature/*`, merge
+  by PR with CI green. Documented in `readme.md`.
+
+**Step 9 — Lint and tests are real commands**
+
+- ESLint 10 with CAP's shipped config. `npm run lint` → clean.
+- `test/config.test.js`: **9 tests, all passing.** Each asserts a Phase 0
+  decision and cites it.
+- `npm run ci` = `lint && test && build`, the same gate CI runs.
+
+**Step 10 — GitHub Actions**
+
+- `.github/workflows/ci.yml`: checkout → setup-node → `npm ci` → lint → test →
+  production build. `permissions: contents: read`. No cloud access, no secrets.
+- Action versions **verified against the GitHub API**, not assumed:
+  `actions/checkout@v7` (v7.0.1), `actions/setup-node@v7` (v7.1.0).
+
+**Step 11 — the PR demonstration: yours to run.** Requires commits and a GitHub
+PR, which you are doing by hand this time. Procedure in the handover notes.
+
+**Decisions taken**
+
+| # | Decision | Rationale |
+| --- | --- | --- |
+| D24 | CI runs lint → test → build only. No packaging or deploy until Phase 7 | A pipeline that deploys nothing cannot leak a secret or break an environment. ADR 004 |
+| D25 | Node's built-in test runner, not Jest | Zero dependencies, native ESM. Jest needs config to handle `"type": "module"`. ADR 004 |
+| D26 | **ESLint 10, not 9** | `@sap/cds@10.1.1` peers `@eslint/js@^10`, which requires `eslint@^10`. Pinning `^9` gave ERESOLVE |
+| D27 | Fixed the peer conflict rather than `--legacy-peer-deps` | Suppressing a peer conflict leaves it in place for whoever next runs a clean install |
+| D28 | `cds build --production` is in the gate from day one | Targets HANA, so a model that builds for SQLite but not HANA fails in seconds, not at Phase 6 deploy |
+| D29 | Phase 1 tests assert **configuration**, since there is no behaviour yet | `npm test` passing while testing nothing teaches the team to ignore the gate. ADR 004 |
+
+**Key points established**
+
+| # | Point | Where it lands |
+| --- | --- | --- |
+| A19 | `cds add` facets map onto later phases: `xsuaa` (37), `approuter` (40), `hana` (46), `mta` (47), `html5-repo`/`destination`/`workzone-standard` (51) | Those steps |
+| A20 | Our mocked users are **merged with** CAP's defaults, not replacing them. `alice` has lowercase `admin`, which will **not** match `@requires: 'Admin'` | Step 25 |
+| A21 | `npm ci` ≠ `npm install`. `ci` installs exactly the lockfile and fails on drift | Step 54 |
+
+**Open / deferred**
+
+- **Step 11 outstanding** — the PR loop demonstration.
+- CI triggers on `main` and `dev1`; narrows to `main` + feature branches once
+  `main` is protected (your GitHub setting, not a file).
+- Dependency caching deliberately absent until Step 54.
+- `test/config.test.js` is a floor, replaced by service tests at Step 27.
+- Phase 0's cockpit checklist still open. First needed at Step 37.
+
+---
+
+### Step 6 — BTP services, entitlements, plans and cost (2026-10-15)
+
+**Done**
+
+- Wrote [btp-services.md](btp-services.md): seven required services with expected
+  plans and first-needed step, two optional ones, a staged provisioning timeline,
+  cost analysis, a seven-item prerequisite list, a cockpit checklist, and a
+  fallback table for anything not entitled.
+- **Nothing provisioned.** Plan §5 Step 6 requires it, and no confirmation to
+  provision has been sought or given.
+
+**Decisions taken**
+
+| # | Decision | Rationale |
+| --- | --- | --- |
+| D21 | Provision in stages, never up front | 90-day clock and HANA's 30-day reclaim. Nothing is created before the step that needs it |
+| D22 | XSUAA at Step 38, HANA not until Step 45 | The whole of Phase 5 runs on a free service that starts no clock, so real auth can be learned without a database quietly expiring |
+| D23 | Steps 63–65 (SBPA, Application Logging) confirmed out of the critical path | Neither serves any of the six learning goals. Fallbacks documented |
+
+**Key points established**
+
+| # | Point | Where it lands |
+| --- | --- | --- |
+| A16 | The database is the expensive part on trial *and* on a productive account — so it is the part you size and switch off deliberately | Step 45, Step 47 |
+| A17 | Only XSUAA is genuinely blocking. Every other service has a documented fallback | Step 45, Step 51 |
+| A18 | Subdomain and CF API endpoint are needed in `xs-security.json` and the CI deploy job | Steps 37, 49, 56 |
+
+**Open — blocking Phase 0 closure**
+
+Checklist in [btp-services.md §5](btp-services.md#5-your-checklist--run-this-in-the-cockpit)
+is yours to run; entitlements are per-subaccount and cannot be verified from here.
+Needed back:
+
+- Plan name **as the cockpit shows it** for each of the seven services
+- Subdomain (P6), region technical name, CF API endpoint (P7), org and space
+- Confirmation of the **Space Developer** role (P4)
+- Specifically: whether **`hana-free` is offered in the US region** — not
+  available everywhere, and the one gap with real consequences
+
+Phase 1 (Step 7) does not depend on any of this and can start first if preferred.
+
+---
 
 ### Step 5 — Environments and CAP profiles (2026-10-15)
 

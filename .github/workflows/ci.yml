@@ -1,0 +1,62 @@
+name: CI
+
+# Phase 1 Step 10 — the first pipeline.
+#
+# Deliberately small. It installs, lints, tests and runs a production build.
+# It does NOT deploy, package an MTA, or touch any cloud resource — those are
+# added in Phase 7 (Steps 53-58), once there is something worth deploying.
+#
+# Grown incrementally:
+#   Step 18 — CDS model validation
+#   Step 27 — service and authorization tests
+#   Step 35 — UI build validation
+#   Step 54 — dependency caching and MTA packaging
+#   Step 56 — deployment to the Cloud Foundry dev space
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main, dev1]
+
+# Least privilege. This workflow only reads the repository; it publishes
+# nothing and comments nowhere. Widen only when a step genuinely needs it.
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Lint, test, build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          # Read the version from .nvmrc rather than hardcoding it here.
+          # One source of truth for local, CI and (from Step 49) the Cloud
+          # Foundry buildpack. See docs/adr/001-node-version.md.
+          node-version-file: '.nvmrc'
+
+      - name: Install dependencies
+        # npm ci, not npm install: it installs exactly what package-lock.json
+        # says and fails if the lockfile and package.json disagree. A build
+        # that quietly resolves different versions than the developer tested
+        # is not a build, it is a coincidence.
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test
+
+      - name: Production build
+        # cds build --production is the same command Phase 6 uses to produce
+        # deployable artifacts. Running it on every change means a model that
+        # cannot be built for HANA fails here, in seconds, rather than during
+        # a deployment.
+        run: npm run build

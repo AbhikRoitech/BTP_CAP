@@ -1,0 +1,32 @@
+# Dependencies and build output
+node_modules/
+target/
+_out/
+gen/
+coverage/
+
+# --- Secrets: never commit ---
+# cds bind writes real service credentials into .cdsrc-private.json at Step 39.
+# default-env.json is a local copy of VCAP_SERVICES and holds the same secrets.
+.cdsrc-private.json
+default-*.json
+
+# Local database
+*.sqlite
+
+# Cloud Foundry / MTA
+mta_archives/
+*_mta_build_tmp
+*.mtar
+.cf/
+
+# Logs
+*.log
+
+# Generated types (@cap-js/cds-typer)
+@cds-models
+
+# OS and editor
+.DS_Store
+Thumbs.db
+*.swp

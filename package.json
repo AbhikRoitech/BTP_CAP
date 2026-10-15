@@ -1,0 +1,56 @@
+{
+  "name": "procurement-platform",
+  "version": "1.0.0",
+  "description": "Enterprise Procurement and Order Management Platform",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@sap/cds": "^10"
+  },
+  "devDependencies": {
+    "@cap-js/sqlite": "^3",
+    "eslint": "^10"
+  },
+  "scripts": {
+    "start": "cds-serve",
+    "watch": "cds watch",
+    "build": "cds build --production",
+    "lint": "eslint .",
+    "test": "node --test \"test/**/*.test.js\"",
+    "ci": "npm run lint && npm test && npm run build"
+  },
+  "cds": {
+    "requires": {
+      "auth": {
+        "kind": "mocked",
+        "users": {
+          "emma": {
+            "roles": [
+              "Employee"
+            ]
+          },
+          "max": {
+            "roles": [
+              "Employee",
+              "Manager"
+            ]
+          },
+          "admin": {
+            "roles": [
+              "Admin"
+            ]
+          }
+        },
+        "[hybrid]": {
+          "kind": "xsuaa"
+        },
+        "[production]": {
+          "kind": "xsuaa"
+        }
+      }
+    }
+  }
+}

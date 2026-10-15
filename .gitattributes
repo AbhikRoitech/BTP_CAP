@@ -1,0 +1,38 @@
+# Normalise line endings.
+#
+# Development is on Windows; CI runners and the Cloud Foundry buildpack are
+# Linux. Without this, Git stores whatever the author's editor produced, and a
+# shell script committed with CRLF fails at deploy time with:
+#
+#     /bin/sh^M: bad interpreter: No such file or directory
+#
+# which names neither the file nor the real cause. Fixing it here costs nothing;
+# finding it during a Phase 6 deployment costs an afternoon.
+
+# Let Git decide what is text, and store it with LF in the repository.
+* text=auto eol=lf
+
+# Files that MUST have LF, whatever the platform — these are executed on Linux.
+*.sh      text eol=lf
+*.yaml    text eol=lf
+*.yml     text eol=lf
+*.json    text eol=lf
+*.cds     text eol=lf
+*.js      text eol=lf
+*.mjs     text eol=lf
+*.cjs     text eol=lf
+*.csv     text eol=lf
+*.properties text eol=lf
+
+# Windows-only scripts keep CRLF.
+*.bat     text eol=crlf
+*.cmd     text eol=crlf
+
+# Binary — never touch.
+*.png     binary
+*.jpg     binary
+*.gif     binary
+*.ico     binary
+*.pdf     binary
+*.zip     binary
+*.mtar    binary
