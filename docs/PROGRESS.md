@@ -8,13 +8,44 @@ See `ClaudeCodeInstructions.md` for the full plan, and `docs/adr/` for decisions
 ## Current position
 
 **Phase 0 — Orientation and architecture**
-**Step 2 — Business requirements: DONE, awaiting your review of the security matrix.**
+**Step 3 — Architecture and request flow: DONE, awaiting verification.**
 
-Next: Step 3 — architecture overview and the full request flow diagram.
+Next: Step 4 — functional modules, domain entities, relationships, service boundaries.
 
 ---
 
 ## Step log
+
+### Step 3 — Architecture and request flow (2026-10-15)
+
+**Done**
+
+- Wrote [architecture.md](architecture.md): components, cloud topology, the
+  OAuth login flow, the steady-state data flow, the three environments, a
+  failure-mode table, and pointers to every decision recorded elsewhere.
+- Two sequence diagrams in Mermaid (render in GitHub and VS Code), one ASCII
+  topology diagram (renders anywhere).
+
+**Key points established**
+
+| # | Point | Why it matters later |
+| --- | --- | --- |
+| A1 | Only the approuter has a public route; `srv` does not | The approuter is the security perimeter, not a convenience. Step 40, Step 47 |
+| A2 | The browser holds a session cookie, never a JWT | The token lives in the approuter's server-side session. Step 40 |
+| A3 | UI and API share a hostname, so there is no CORS config | A CORS error means a request escaped the approuter. Step 33 |
+| A4 | `srv` validates the JWT itself, not trusting the approuter | Defence in depth. Step 41 |
+| A5 | The JWT is a snapshot; role changes need a new token | Explains most "I have the role but get 403" tickets. Step 42 |
+| A6 | `@requires` reads the token, `@restrict` writes SQL | Static vs instance-based, the core of learning goal 1. Step 25 |
+| A7 | `srv` connects to HDI as a technical user, not as the end user | Row security is application-layer. Explains the `AuditLog` write path |
+| A8 | `db-deployer` is a task; "stopped" is success | Avoids a false alarm at Step 50 |
+
+**Open / deferred**
+
+- No open questions from this step.
+- `architecture.md` section 2 will need revising at Step 47 once `mta.yaml`
+  fixes the real module names and memory sizing.
+
+---
 
 ### Step 2 — Business requirements, actors, permissions, NFRs (2026-10-15)
 
