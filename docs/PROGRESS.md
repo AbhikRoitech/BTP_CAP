@@ -60,6 +60,16 @@ Available kinds: `sqlite`, `hana`, `sql`, `mocked`, `xsuaa`, `ias`.
 - No open questions from this step.
 - Config in §3 is a blueprint; exact keys re-verified with `cds env` at Steps 7,
   20, 39 and 46 rather than trusted from the document.
+- **Line endings.** Git reports `LF will be replaced by CRLF` on every file.
+  Development is on Windows; CI and the Cloud Foundry buildpack are Linux.
+  Step 8 must add a `.gitattributes` to normalise this — shell scripts with CRLF
+  fail at deploy time with an unhelpful error.
+
+**Workflow change (2026-10-15)**
+
+Claude now commits and pushes the completed step as the first action of the next
+step. Recorded in `ClaudeCodeInstructions.md` §6 "Commit rule". Abhik does not
+commit by hand.
 
 ---
 
