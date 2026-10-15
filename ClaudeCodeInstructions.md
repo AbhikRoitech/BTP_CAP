@@ -82,6 +82,17 @@ Then **STOP and wait**. Do not continue until I type `CONTINUE` or paste verific
 
 If something fails, diagnose the actual failure before proceeding. Never claim a test, build, deployment or cloud resource exists without evidence.
 
+### Commit rule
+
+When I tell you to move to the next step, **commit the previous step first**,
+before doing any new work. One commit per step, message in the form
+`docs:` / `feat:` / `chore:` + `Phase N Step M — summary`, with the decisions and
+anything closed listed in the body.
+
+I do not commit by hand. You do it as the first action of each new step, so the
+repository always reflects the last completed step and `docs/PROGRESS.md` is
+never ahead of the history.
+
 ### Hands-on rule
 
 I learn by doing, not by watching.
