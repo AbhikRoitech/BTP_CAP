@@ -8,13 +8,100 @@ See `ClaudeCodeInstructions.md` for the full plan, and `docs/adr/` for decisions
 ## Current position
 
 **Phase 0 — Orientation and architecture**
-**Step 3 — Architecture and request flow: DONE, awaiting verification.**
+**Step 5 — Environments and CAP profiles: DONE, awaiting verification.**
 
-Next: Step 4 — functional modules, domain entities, relationships, service boundaries.
+Next: Step 6 — required BTP services, plans, entitlements, prerequisites, cost.
+Last step of Phase 0.
 
 ---
 
 ## Step log
+
+### Step 5 — Environments and CAP profiles (2026-10-15)
+
+**Done**
+
+- Wrote [environments.md](environments.md): the three environments, the profile
+  mechanism, per-environment config, the three test users, secrets handling,
+  what must never differ, and a debugging table.
+- **Verified CAP's profile defaults against the installed 10.1.0** rather than
+  writing them from memory (see below).
+- Closed **OQ6 → yes**, `MyProfile` is in v1. Recorded in
+  [domain-model.md §6](domain-model.md#6-resolved-questions).
+
+**Verified facts (cds 10.1.0, this machine)**
+
+```
+cds env get requires.auth                     → kind: "mocked", users alice/bob/carol
+cds env get requires.auth --profile production → kind: "jwt", vcap.label: "xsuaa"
+```
+
+Available kinds: `sqlite`, `hana`, `sql`, `mocked`, `xsuaa`, `ias`.
+
+**Decisions taken**
+
+| # | Decision | Rationale |
+| --- | --- | --- |
+| D18 | Three test users named `emma`, `max`, `admin` after their roles | Same identities from Step 25 (mocked) through Step 42 (real BTP users), so local and cloud tests compare like with like |
+| D19 | Hybrid gets its own profile, used for the whole of Phase 5 | Real JWTs with local breakpoints, at zero cost — XSUAA is free, SQLite still stores |
+| D20 | `.cdsrc-private.json` and `default-env.json` gitignored at Step 8 | Before Step 39 can create them. A secret committed once is in history for good |
+
+**Key teaching points established**
+
+| # | Point | Where it lands |
+| --- | --- | --- |
+| A12 | Auth switches mocked → JWT **by profile, automatically**. You configure the exceptions, not the switch | Step 7, Step 39 |
+| A13 | Local roles are plain names; cloud scopes carry `$XSAPPNAME.`, which CAP strips. Same `@restrict` works in both | Step 25, Step 37 |
+| A14 | `cds env get <path>` answers "what is actually configured", profile overrides included | every config step |
+| A15 | Business logic and `@restrict` must be **identical** across environments; only identity source and storage differ | Step 25 onward |
+
+**Open / deferred**
+
+- No open questions from this step.
+- Config in §3 is a blueprint; exact keys re-verified with `cds env` at Steps 7,
+  20, 39 and 46 rather than trusted from the document.
+
+---
+
+### Step 4 — Domain model and service boundaries (2026-10-15)
+
+**Done**
+
+- Wrote [domain-model.md](domain-model.md): three functional modules, six
+  entities with full field lists, the relationship map, managed vs unmanaged
+  associations, and the two service projections.
+- Wrote [ADR 003](adr/003-service-boundaries.md) — two services, cut by use case
+  rather than by table.
+
+**Decisions taken**
+
+| # | Decision | Rationale |
+| --- | --- | --- |
+| D10 | Two services: `ProcurementService` and `AdminService` | A CAP service is a use case, not a table. ADR 003 |
+| D11 | Entities appear in both services with different projections | `Suppliers` is `@readonly` for employees, CRUD for admins. Authorization shaped structurally, not conditionally |
+| D12 | `OrderStatus` is a **code list**, not a CDS enum | Translatable, generates Fiori value help, `criticality` gives free colour coding at Step 31 |
+| D13 | `Employees.userId` joins the JWT identity to the domain | `$user` → `userId` → `Employees.ID` → `createdBy`. BR6 is impossible without it |
+| D14 | `isActive` flags on `Suppliers` and `Products` | How BR8 is really satisfied — deactivate rather than block the delete |
+| D15 | Item `unitPrice` is copied from the product, not looked up | An order records what was agreed, not today's catalogue price |
+| D16 | `AuditLog` deliberately omits the `managed` aspect | `modifiedAt` on an append-only table invites someone to use it |
+| D17 | One CAP app, modular inside | Splitting is a one-way door; cheap to delay, expensive to reverse. Criteria for splitting recorded |
+
+**Key teaching points established**
+
+| # | Point | Where it lands |
+| --- | --- | --- |
+| A9 | The database entity is not the API — the service projection is | Step 19 |
+| A10 | A to-many association is **always** unmanaged; the FK is on the other table | Step 14 |
+| A11 | Composition gives three things: cascade delete, one draft over the tree, and a collapsed authorization surface | Steps 14, 23, 25 |
+
+**Open / deferred**
+
+- **OQ6** — is `MyProfile` (employee reads own record) needed in v1 or deferred?
+  Needed by Step 19.
+- Field-level personal data protection on `Employees` still outstanding — Step 15
+  closes it (carried from Step 2).
+
+---
 
 ### Step 3 — Architecture and request flow (2026-10-15)
 
